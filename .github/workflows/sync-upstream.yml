@@ -1,0 +1,28 @@
+name: sync-upstream
+
+on:
+  schedule:
+    - cron: "17 4 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  workflows: write
+
+jobs:
+  sync:
+    if: github.repository == 'niemst/TradingAgents'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.SYNC_TOKEN || github.token }}
+      - name: Merge upstream main
+        run: |
+          git config user.name "sync-upstream"
+          git config user.email "sync-upstream@users.noreply.github.com"
+          git remote add upstream https://github.com/TauricResearch/TradingAgents.git
+          git fetch upstream main
+          git merge --no-edit upstream/main
+          git push origin HEAD:main
